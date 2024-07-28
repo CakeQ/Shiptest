@@ -246,6 +246,25 @@ SUBSYSTEM_DEF(overmap)
 	ship_spawning = FALSE
 
 /**
+ * Spawns a controlled ship with the passed persistent ship record at the template's preferred spawn location.
+ * Intended for persistent ship loading.
+ */
+/datum/controller/subsystem/overmap/proc/spawn_persistent_ship_at_start(datum/ship_record/persistent_ship)
+	//Should never happen, but just in case. This'll delay the next spawn until the current one is done.
+	UNTIL(!ship_spawning)
+
+	var/ship_loc
+	var/datum/map_template/shuttle/template = SSmapping.ship_purchase_list[persistent_ship.template]
+	if(!template || template.space_spawn)
+		ship_loc = null
+	else
+		ship_loc = SSovermap.outposts[1]
+
+	ship_spawning = TRUE
+	. = new /datum/overmap/ship/controlled(ship_loc, template, persistent_ship, persistent_ship.savefile) //This statement SHOULDN'T runtime (not counting runtimes actually in the constructor) so ship_spawning should always be toggled.
+	ship_spawning = FALSE
+
+/**
  * Creates an overmap object for each ruin level, making them accessible.
  */
 /datum/controller/subsystem/overmap/proc/spawn_ruin_levels()

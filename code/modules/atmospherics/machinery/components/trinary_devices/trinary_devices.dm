@@ -8,6 +8,7 @@
 	pipe_flags = PIPING_ONE_PER_TURF
 
 	var/flipped = FALSE
+	persistent_vars = "datum_components;density;icon_state;dir;name;pixel_x;pixel_y;initialize_directions;pipe_color;piping_layer;pipe_flags;flipped"
 
 /obj/machinery/atmospherics/components/trinary/SetInitDirections()
 	switch(dir)

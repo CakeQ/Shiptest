@@ -171,6 +171,7 @@
 	var/update_overlay = -1
 	var/icon_update_needed = FALSE
 	var/obj/machinery/computer/apc_control/remote_control = null
+	persistent_vars = "density;icon_state;dir;name;pixel_x;pixel_y;stat;update_state;req_access_txt;id;cell;area"
 
 /obj/machinery/power/apc/unlocked
 	locked = FALSE

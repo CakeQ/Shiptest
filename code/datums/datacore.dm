@@ -16,6 +16,9 @@
 	name = "record"
 	var/list/fields = list()
 
+	persistent_vars = "fields"
+	safe_list_vars = "fields"
+
 /datum/data/record/Destroy()
 	if(src in GLOB.data_core.medical)
 		GLOB.data_core.medical -= src

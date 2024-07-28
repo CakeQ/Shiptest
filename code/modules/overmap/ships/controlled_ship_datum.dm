@@ -50,6 +50,8 @@
 	var/mob/owner_mob
 	/// The mind of the current ship owner. Mostly kept around so that we can scream in panic if this gets changed behind our back.
 	var/datum/mind/owner_mind
+	/// The ckey of the ship owner. This should not change when the owner of the ship changes, as it references the original owner for the sake of saving the ship.
+	var/owner_ckey
 	/// The action datum given to the current owner; will be null if we don't have one.
 	var/datum/action/ship_owner/owner_act
 	/// The ID of the timer that is used to check for a new owner, if the ship ends up with a null owner.
@@ -93,14 +95,17 @@
  * * creation_template - The template used to create the ship.
  * * target_port - The port to dock the new ship to.
  */
-/datum/overmap/ship/controlled/Initialize(position, datum/map_template/shuttle/creation_template, create_shuttle = TRUE)
+/datum/overmap/ship/controlled/Initialize(position, datum/map_template/shuttle/creation_template, datum/ship_record/persistent_ship, savefile/savefile, create_shuttle = TRUE)
 	. = ..()
 	if(creation_template)
 		source_template = creation_template
 		unique_ship_access = source_template.unique_ship_access
 		job_slots = source_template.job_slots?.Copy()
 		if(create_shuttle)
-			shuttle_port = SSshuttle.load_template(creation_template, src)
+			if(savefile)
+				shuttle_port = SSshuttle.load_savefile(persistent_ship, savefile, src)
+			else
+				shuttle_port = SSshuttle.load_template(creation_template, src)
 			if(!shuttle_port) //Loading failed, if the shuttle is supposed to be created, we need to delete ourselves.
 				qdel(src) // Can't return INITIALIZE_HINT_QDEL here since this isn't ACTUAL initialisation. Considering changing the name of the proc.
 				return
@@ -111,10 +116,15 @@
 			refresh_engines()
 		ship_account = new(name, source_template.starting_funds)
 
+
 #ifdef UNIT_TESTS
 	Rename("[source_template]", TRUE)
 #else
-	Rename("[source_template.prefix] [pick_list_replacements(SHIP_NAMES_FILE, pick(source_template.name_categories))]", TRUE)
+	if(persistent_ship)
+		Rename("[persistent_ship.name]", TRUE)
+		memo = persistent_ship.memo
+	else
+		Rename("[source_template.prefix] [pick_list_replacements(SHIP_NAMES_FILE, pick(source_template.name_categories))]", TRUE)
 #endif
 	SSovermap.controlled_ships += src
 
@@ -302,6 +312,8 @@
 	RegisterSignal(H.mind, COMSIG_PARENT_QDELETING, PROC_REF(crew_mind_deleting))
 	if(!owner_mob)
 		set_owner_mob(H)
+	if(!owner_ckey)
+		set_owner_ckey(ckey(H.mind.key))
 
 	if(!(human_job in job_holder_refs))
 		job_holder_refs[human_job] = list()
@@ -368,6 +380,9 @@
 	if(!owner_act)
 		owner_act = new(src)
 	owner_act.Grant(owner_mob)
+
+/datum/overmap/ship/controlled/proc/set_owner_ckey(new_owner_ckey)
+	owner_ckey = new_owner_ckey
 
 /datum/overmap/ship/controlled/proc/crew_mind_deleting(datum/mind/del_mind)
 	SIGNAL_HANDLER

@@ -374,6 +374,139 @@ SUBSYSTEM_DEF(shuttle)
 
 	return new_shuttle
 
+/**
+ * This proc is THE proc that loads a shuttle from a specified save. Anything else should go through this
+ * in order to spawn a new shuttle.
+ *
+ * * shipsave - The shuttle save to load. Can NOT be null.
+ * * spawn_transit - Whether or not to send the new shuttle to a newly-generated transit dock after loading.
+ **/
+/datum/controller/subsystem/shuttle/proc/load_savefile(datum/ship_record/persistent_ship, savefile/savefile, datum/overmap/ship/controlled/parent, spawn_transit = TRUE)
+	. = FALSE
+
+	if(!savefile)
+		return
+
+	savefile.cd = "/mapsize"
+	var/list/bounds = list(1.#INF, 1.#INF, 1.#INF, -1.#INF, -1.#INF, -1.#INF)
+	bounds[MAP_MINX] = savefile["min_x"]
+	bounds[MAP_MAXX] = savefile["max_x"]
+	bounds[MAP_MINY] = savefile["min_y"]
+	bounds[MAP_MAXY] = savefile["max_y"]
+	var/width = (bounds[MAP_MAXX] - bounds[MAP_MINX]) + 1
+	var/height = (bounds[MAP_MAXY] - bounds[MAP_MINY]) + 1
+
+	savefile.cd = ".."
+
+	var/loading_mapzone = SSmapping.create_map_zone("Shuttle Loading Zone")
+	var/datum/virtual_level/loading_zone = SSmapping.create_virtual_level("[savefile.name] Loading Level", list(ZTRAIT_RESERVED = TRUE), loading_mapzone, width,  height, ALLOCATION_FREE)
+
+	if(!loading_zone)
+		CRASH("failed to reserve an area for shuttle save loading")
+	loading_zone.fill_in(turf_type = /turf/open/space/transit/south)
+
+	bounds[MAP_MINZ] = loading_zone.z_value
+	bounds[MAP_MAXZ] = loading_zone.z_value
+
+	var/datum/map_template/shuttle/template = SSmapping.ship_purchase_list[persistent_ship.template]
+	if(!template)
+		template = new()
+
+	template.preload_size(template.mappath, FALSE)
+	template.initTemplateBounds(bounds, TRUE)
+
+	var/turf/BL = locate(loading_zone.low_x, loading_zone.low_y, loading_zone.z_value)
+
+	var/list/turfs = block(locate(max(BL.x, 1), max(BL.y, 1),  BL.z),
+						locate(min(BL.x+width, world.maxx), min(BL.y+height, world.maxy), BL.z))
+	for(var/turf/turf in turfs)
+		turfs[turf] = turf.loc
+
+	if(!load_ship(BL, savefile))
+		return
+
+	var/obj/docking_port/mobile/new_shuttle
+	var/list/stationary_ports = list()
+	var/affected = block(BL, locate(BL.x+width-1, BL.y+height-1, BL.z))
+	for(var/T in affected)
+		for(var/obj/docking_port/P in T)
+			if(istype(P, /obj/docking_port/mobile))
+				if(new_shuttle)
+					stack_trace("Map warning: Shuttle Save [savefile.name] has multiple mobile docking ports.")
+					qdel(P, TRUE)
+				else
+					new_shuttle = P
+			if(istype(P, /obj/docking_port/stationary))
+				stationary_ports += P
+	if(!new_shuttle)
+		var/msg = "load_savefile(): Shuttle Save [savefile.name] has no mobile docking port. Aborting import."
+		for(var/T in affected)
+			var/turf/T0 = T
+			T0.empty()
+		message_admins(msg)
+		CRASH(msg)
+
+	switch(new_shuttle.dir)
+		if(NORTH)
+			new_shuttle.width = width
+			new_shuttle.height = height
+			new_shuttle.dwidth = template.port_x_offset - 1
+			new_shuttle.dheight = template.port_y_offset - 1
+		if(EAST)
+			new_shuttle.width = height
+			new_shuttle.height = width
+			new_shuttle.dwidth = height - template.port_y_offset
+			new_shuttle.dheight = template.port_x_offset - 1
+		if(SOUTH)
+			new_shuttle.width = width
+			new_shuttle.height = height
+			new_shuttle.dwidth = width - template.port_x_offset
+			new_shuttle.dheight = height - template.port_y_offset
+		if(WEST)
+			new_shuttle.width = height
+			new_shuttle.height = width
+			new_shuttle.dwidth = template.port_y_offset - 1
+			new_shuttle.dheight = width - template.port_x_offset
+
+	for(var/turf/shuttle_turf in turfs)
+		var/area/ship/turf_loc = turfs[shuttle_turf]
+		new_shuttle.underlying_turf_area[shuttle_turf] = turf_loc
+		if(istype(turf_loc) && turf_loc.mobile_port)
+			turf_loc.mobile_port.towed_shuttles |= new_shuttle
+
+	new_shuttle.load(template)
+	new_shuttle.docking_points = stationary_ports
+	new_shuttle.current_ship = parent //for any ships that spawn on top of us
+
+	for(var/obj/docking_port/stationary/S in stationary_ports)
+		S.owner_ship = new_shuttle
+		S.load_roundstart()
+
+	var/obj/docking_port/mobile/transit_dock = generate_transit_dock(new_shuttle)
+
+	if(!transit_dock)
+		qdel(src, TRUE)
+		CRASH("No dock found/could be created for shuttle ([savefile.name]), aborting.")
+
+	var/result = new_shuttle.canDock(transit_dock)
+	if((result != SHUTTLE_CAN_DOCK))
+		qdel(src, TRUE)
+		CRASH("Save shuttle [new_shuttle] cannot dock at [transit_dock] ([result]).")
+
+	new_shuttle.initiate_docking(transit_dock)
+	new_shuttle.linkup(transit_dock, parent)
+
+	var/area/fill_area = GLOB.areas_by_type[/area/space]
+	loading_zone.fill_in(turf_type = /turf/open/space/transit/south, area_override = fill_area ? fill_area : /area/space)
+	QDEL_NULL(loading_zone)
+
+	//Everything fine
+	template.post_load(new_shuttle)
+	new_shuttle.register()
+	new_shuttle.reset_air()
+
+	return new_shuttle
+
 /datum/controller/subsystem/shuttle/ui_state(mob/user)
 	return GLOB.admin_debug_state
 

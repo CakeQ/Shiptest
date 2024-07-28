@@ -17,6 +17,7 @@ export const ShipSelect = (props, context) => {
 
   const ships = data.ships || {};
   const templates = data.templates || [];
+  const shipsSaved = data.shipsSaved || [];
 
   const [currentTab, setCurrentTab] = useLocalState(context, 'tab', 1);
   const [selectedShip, setSelectedShip] = useLocalState(
@@ -34,6 +35,7 @@ export const ShipSelect = (props, context) => {
   const [shownTabs, setShownTabs] = useLocalState(context, 'tabs', [
     { name: 'Ship Select', tab: 1 },
     { name: 'Ship Purchase', tab: 3 },
+    { name: 'Load Ship', tab: 4 },
   ]);
   const searchFor = (searchText) =>
     createSearch(searchText, (thing) => thing.name);
@@ -309,6 +311,74 @@ export const ShipSelect = (props, context) => {
                   </LabeledList.Item>
                 </LabeledList>
               </Collapsible>
+            ))}
+          </Section>
+        )}
+        {currentTab === 4 && (
+          <Section
+            title="Load Ship"
+            buttons={
+              <>
+                <Input
+                  placeholder="Search..."
+                  autoFocus
+                  value={searchText}
+                  onInput={(_, value) => setSearchText(value)}
+                />
+                <Button
+                  content="Back"
+                  onClick={() => {
+                    setCurrentTab(1);
+                  }}
+                />
+              </>
+            }
+          >
+            {shipsSaved.filter(searchFor(searchText)).map((ship) => (
+              <Section
+                title={ship.name}
+                key={ship.name}
+                color={
+                  (!data.shipSpawnAllowed && 'average') ||
+                  (ship.curNum >= ship.limit && 'grey') ||
+                  'default'
+                }
+                buttons={
+                  <Button
+                    content="Load"
+                    tooltip={
+                      (!data.shipSpawnAllowed &&
+                        'No more ships may be spawned at this time.') ||
+                      (ship.curNum >= ship.limit &&
+                        'There are too many ships of this type.') ||
+                      (data.shipSpawning &&
+                        'A ship is currently spawning. Please wait.')
+                    }
+                    disabled={
+                      !data.shipSpawnAllowed ||
+                      data.shipSpawning ||
+                      ship.curNum >= ship.limit
+                    }
+                    onClick={() => {
+                      act('load', {
+                        name: ship.name,
+                      });
+                    }}
+                  />
+                }
+              >
+                <LabeledList>
+                  <LabeledList.Item label="Ship Class">
+                    {ship.type || 'No Description'}
+                  </LabeledList.Item>
+                  <LabeledList.Item label="Memo">
+                    {ship.memo || 'No Memo Set'}
+                  </LabeledList.Item>
+                  <LabeledList.Item label="Funds">
+                    {ship.funds}
+                  </LabeledList.Item>
+                </LabeledList>
+              </Section>
             ))}
           </Section>
         )}

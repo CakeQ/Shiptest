@@ -212,6 +212,8 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 	var/list/favorite_outfits = list()
 	var/whois_visible = TRUE
 
+	var/list/ships = list()
+
 	///The outfit we currently want to preview on our character
 	var/datum/outfit/job/selected_outfit
 

@@ -122,6 +122,7 @@ SUBSYSTEM_DEF(blackbox)
 		message_admins("[key_name_admin(usr)] sealed the blackbox!")
 	log_game("Blackbox sealed[IsAdminAdvancedProcCall() ? " by [key_name(usr)]" : ""].")
 	sealed = TRUE
+	update_ships()
 	return TRUE
 
 /datum/controller/subsystem/blackbox/proc/LogBroadcast(freq)

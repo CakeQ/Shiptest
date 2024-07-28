@@ -58,6 +58,8 @@ GLOBAL_LIST_INIT(nonreactive_gases, typecacheof(list(GAS_O2, GAS_N2, GAS_CO2, GA
 	var/fire_burn_rate = 1 // how many moles are burned per product released
 	var/fire_radiation_released = 0 // How much radiation is released when this gas burns
 
+	persistent_vars = "moles"
+
 /datum/gas/proc/breath(partial_pressure, light_threshold, heavy_threshold, moles, mob/living/carbon/C, obj/item/organ/lungs/lungs)
 	// This is only called on gases with the GAS_FLAG_BREATH_PROC flag. When possible, do NOT use this--
 	// greatly prefer just adding a reagent. This is mostly around for legacy reasons.

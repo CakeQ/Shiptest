@@ -47,6 +47,8 @@
 	///If we should init and immediately start processing
 	var/init_processing = FALSE
 
+	persistent_vars = "datum_components;density;icon_state;dir;name;pixel_x;pixel_y;initialize_directions;pipe_color;piping_layer;pipe_flags"
+
 /obj/machinery/atmospherics/examine(mob/user)
 	. = ..()
 	if(is_type_in_list(src, GLOB.ventcrawl_machinery) && isliving(user))

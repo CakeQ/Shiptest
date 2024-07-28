@@ -50,6 +50,8 @@
 							"Dinnerware"
 							)
 
+	persistent_vars = "datum_components;stored_research;density;icon_state;dir;name;pixel_x;pixel_y;req_access_txt"
+
 /obj/machinery/autolathe/Initialize()
 	AddComponent(/datum/component/material_container,list(/datum/material/iron, /datum/material/glass, /datum/material/plastic, /datum/material/silver, /datum/material/gold, /datum/material/plasma, /datum/material/uranium, /datum/material/titanium, /datum/material/hellstone), 0, TRUE, null, null, CALLBACK(src, PROC_REF(AfterMaterialInsert)))
 	. = ..()

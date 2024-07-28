@@ -136,6 +136,8 @@ Class Procs:
 	var/atmos_processing = FALSE
 	var/interacts_with_air = FALSE
 
+	persistent_vars = "datum_components;density;icon_state;dir;name;pixel_x;pixel_y;id;machine_stat"
+
 /obj/machinery/Initialize(mapload, apply_default_parts = TRUE)
 	if(!armor)
 		armor = list("melee" = 25, "bullet" = 10, "laser" = 10, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 50, "acid" = 70)

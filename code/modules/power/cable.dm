@@ -48,6 +48,8 @@ GLOBAL_LIST_INIT(cable_colors, list(
 		pipe_interference_group = "cable-[cable_layer]"\
 	)
 
+	persistent_vars = "datum_components;density;icon_state;dir;name;pixel_x;pixel_y;d1;d2"
+
 	var/obj/item/stack/cable_coil/stored
 
 	var/cable_color = "red"

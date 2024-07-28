@@ -22,6 +22,9 @@
 	var/datum/callback/precondition
 	var/datum/callback/after_insert
 
+	persistent_vars = "total_amount;max_amount;sheet_type;materials"
+	safe_list_vars = "materials"
+
 /// Sets up the proper signals and fills the list of materials with the appropriate references.
 /datum/component/material_container/Initialize(list/mat_list, max_amt = 0, _show_on_examine = FALSE, list/allowed_types, datum/callback/_precondition, datum/callback/_after_insert, _disable_attackby)
 	materials = list()

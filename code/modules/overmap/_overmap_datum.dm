@@ -70,7 +70,7 @@
 	if(current_docking_ticket)
 		QDEL_NULL(current_docking_ticket)
 	if(docked_to)
-		docked_to.post_undocked()
+		docked_to.post_undocked(src)
 		docked_to.contents -= src
 	if(isnum(x) && isnum(y))
 		SSovermap.overmap_container[x][y] -= src

@@ -618,6 +618,9 @@
 	var/cooldown = 0
 	var/list/cards = list()
 
+	persistent_vars = "datum_components;density;icon_state;dir;name;pixel_x;pixel_y;cards"
+	safe_list_vars = "cards"
+
 /obj/item/toy/cards/deck/Initialize()
 	. = ..()
 	populate_deck()

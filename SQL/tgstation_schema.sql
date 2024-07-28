@@ -551,6 +551,7 @@ CREATE TABLE `ticket` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 DELIMITER $$
+DROP PROCEDURE IF EXISTS `set_poll_deleted`;
 CREATE PROCEDURE `set_poll_deleted`(
 	IN `poll_id` INT
 )
@@ -609,3 +610,19 @@ CREATE TABLE `mentor_memo` (
   `edits` text,
   PRIMARY KEY (`ckey`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Table structure for table `ship_persistence`
+--
+
+DROP TABLE IF EXISTS `ship_persistence`;
+
+CREATE TABLE `ship_persistence` (
+ `ckey` VARCHAR(32) NOT NULL,
+ `name` VARCHAR(96) NOT NULL,
+ `template` TINYTEXT NOT NULL,
+ `memo` TINYTEXT DEFAULT NULL,
+ `funds` INT UNSIGNED NOT NULL,
+ `savefile` LONGTEXT DEFAULT NULL,
+ PRIMARY KEY (`ckey`, `name`)
+ ) ENGINE = InnoDB DEFAULT CHARSET=latin1;

@@ -63,6 +63,50 @@
 				to_chat(spawnee, "<span class='danger'>Unable to spawn on ship!</span>")
 				spawnee.new_player_panel()
 
+		if("load")
+			var/datum/ship_record/selected_record
+			for(var/datum/ship_record/saved_record as anything in spawnee.client.prefs.ships)
+				if(saved_record.name == params["name"])
+					selected_record = saved_record
+
+			if(!selected_record)
+				to_chat(spawnee, "<span class='danger'>Can't load ship!</span>")
+				return
+
+			var/datum/map_template/shuttle/template = SSmapping.ship_purchase_list[selected_record.template]
+			if(SSovermap.ship_spawning)
+				to_chat(spawnee, "<span class='danger'>A ship is currently spawning. Try again in a little while.</span>")
+				return
+			if(!SSovermap.player_ship_spawn_allowed())
+				to_chat(spawnee, "<span class='danger'>No more ships may be spawned at this time!</span>")
+				return
+			if(!template.enabled)
+				to_chat(spawnee, "<span class='danger'>This ship is not currently available for purchase!</span>")
+				return
+
+			var/num_ships_with_template = 0
+			for(var/datum/overmap/ship/controlled/Ship as anything in SSovermap.controlled_ships)
+				if(template == Ship.source_template)
+					num_ships_with_template += 1
+			if(num_ships_with_template >= template.limit)
+				to_chat(spawnee, "<span class='danger'>There are already [num_ships_with_template] ships of this type; you cannot spawn more!</span>")
+				return
+
+			ui.close()
+
+			to_chat(spawnee, "<span class='danger'>Your [selected_record.name] is being prepared. Please be patient!</span>")
+			// var/savefile/loadedship = SSblackbox.request_ship_savefile_from_db(spawnee.ckey, params["name"])
+			var/datum/overmap/ship/controlled/target = SSovermap.spawn_persistent_ship_at_start(selected_record, selected_record.savefile)
+			if(!target?.shuttle_port)
+				to_chat(spawnee, "<span class='danger'>There was an error loading the ship. Please contact admins!</span>")
+				spawnee.new_player_panel()
+				return
+			// Try to spawn as the first listed job in the job slots (usually captain)
+			// Playtime checks are overridden, to ensure the player gets to join the ship they spawned.
+			if(!spawnee.AttemptLateSpawn(target.job_slots[1], target, FALSE))
+				to_chat(spawnee, "<span class='danger'>Ship spawned, but you were unable to be spawned. You can likely try to spawn in the ship through joining normally, but if not, please contact an admin.</span>")
+				spawnee.new_player_panel()
+
 		if("buy")
 			if(is_banned_from(spawnee.ckey, "Ship Purchasing"))
 				to_chat(spawnee, "<span class='danger'>You are banned from purchasing ships!</span>")
@@ -117,6 +161,7 @@
 
 	. = list()
 	.["ships"] = list()
+	.["shipsSaved"] = list()
 	.["shipSpawnAllowed"] = SSovermap.player_ship_spawn_allowed()
 	.["purchaseBanned"] = is_banned_from(user.ckey, "Ship Purchasing")
 	// if the player has a client which is not eligible for playtime restriction (for admin + player DB flag playtime exemption), they "auto meet" playtime requirements
@@ -158,6 +203,19 @@
 		)
 
 		.["ships"] += list(ship_data)
+
+	for(var/datum/ship_record/S as anything in user.client.prefs.ships)
+		var/datum/map_template/shuttle/T = SSmapping.ship_purchase_list[S.template]
+		var/list/ship_data = list(
+			"name" = S.name,
+			"type" = S.template,
+			"memo" = S.memo,
+			"funds" = S.funds,
+			"limit" = T.limit,
+			"curNum" = template_num_lookup[T] || 0,
+		)
+
+		.["shipsSaved"] += list(ship_data)
 
 	.["templates"] = list()
 	for(var/template_name as anything in SSmapping.ship_purchase_list)

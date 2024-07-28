@@ -28,6 +28,8 @@
 	var/list/req_components = null
 	var/list/req_component_names = null // user-friendly names of components
 
+	persistent_vars = "datum_components;density;icon_state;dir;name;pixel_x;pixel_y;id;components"
+
 /obj/structure/frame/machine/examine(user)
 	. = ..()
 	if(state == 3 && req_components && req_component_names)

@@ -67,6 +67,9 @@
 	var/list/stamps /// Positioning for the stamp in tgui
 	var/list/stamped /// Overlay info
 
+	persistent_vars = "datum_components;density;icon_state;dir;name;pixel_x;pixel_y;raw_text_inputs;raw_stamp_data;raw_field_input_data;stamps;stamped"
+	safe_list_vars = "stamps;stamped"
+
 /obj/item/paper/Initialize(mapload)
 	. = ..()
 	pixel_x = base_pixel_x + rand(-9, 9)

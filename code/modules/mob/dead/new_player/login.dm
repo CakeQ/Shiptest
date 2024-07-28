@@ -4,6 +4,7 @@
 	if(CONFIG_GET(flag/use_exp_tracking))
 		client.set_exp_from_db()
 		client.set_db_player_flags()
+	client.request_ships_from_db()
 	if(!mind)
 		mind = new /datum/mind(key)
 		mind.active = TRUE

@@ -27,7 +27,7 @@ FEEDBACK_TABLEPREFIX
 FEEDBACK_LOGIN SS13
 
 ## Password used to access the database.
-FEEDBACK_PASSWORD MoWO68
+FEEDBACK_PASSWORD mib6Xa
 
 ## Time in seconds for asynchronous queries to timeout
 ## Set to 0 for infinite
@@ -42,4 +42,4 @@ BLOCKING_QUERY_TIMEOUT 5
 BSQL_THREAD_LIMIT 50
 
 ## Uncomment to enable verbose BSQL communication logs
-BSQL_DEBUG
+#BSQL_DEBUG

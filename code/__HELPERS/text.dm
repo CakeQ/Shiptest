@@ -900,3 +900,6 @@ GLOBAL_LIST_INIT(binary, list("0","1"))
 		var/pos = rand(1, length(string))
 		. += copytext(string, pos, pos+1)
 		string = splicetext(string, pos, pos+1, null)
+
+/proc/convert_ascii(match, group1, group2)
+	return ascii2text(hex2num(group1))
